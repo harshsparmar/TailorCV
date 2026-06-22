@@ -58,15 +58,12 @@ export async function POST(req: NextRequest) {
 
       let extractedText: string;
       try {
-        const { PDFParse } = require("pdf-parse") as {
-          PDFParse: new (opts: { data: Buffer }) => {
-            getText: () => Promise<{ text: string }>;
-            destroy: () => Promise<void>;
-          };
-        };
-        const parser = new PDFParse({ data: buffer });
-        const result = await parser.getText();
-        await parser.destroy();
+        // Use the lib path directly to avoid Vercel serverless test-file loading issue
+        const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (
+          dataBuffer: Buffer,
+          options?: Record<string, unknown>
+        ) => Promise<{ text: string }>;
+        const result = await pdfParse(buffer);
         extractedText = result.text;
       } catch (err) {
         console.error("[parse-resume] PDF parse error:", err);
