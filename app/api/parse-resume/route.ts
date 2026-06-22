@@ -58,10 +58,11 @@ export async function POST(req: NextRequest) {
 
       let extractedText: string;
       try {
-        // Use the lib path directly to avoid Vercel serverless test-file loading issue
+        // Import from lib/pdf-parse.js (not the package root) to skip the
+        // test-file loading that pdf-parse v1 does on require, which crashes
+        // in Vercel's serverless environment.
         const pdfParse = require("pdf-parse/lib/pdf-parse.js") as (
-          dataBuffer: Buffer,
-          options?: Record<string, unknown>
+          buffer: Buffer
         ) => Promise<{ text: string }>;
         const result = await pdfParse(buffer);
         extractedText = result.text;
@@ -69,8 +70,7 @@ export async function POST(req: NextRequest) {
         console.error("[parse-resume] PDF parse error:", err);
         return NextResponse.json(
           {
-            error:
-              "Failed to read PDF. Make sure it is a text-based PDF, not a scanned image.",
+            error: `Failed to read PDF: ${err instanceof Error ? err.message : String(err)}`,
           },
           { status: 400 }
         );
