@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p ${PORT:-3000}",
     "lint": "next lint"
   },
   "dependencies": {
@@ -19,7 +19,7 @@
     "docx": "^8.5.0",
     "groq-sdk": "^1.2.0",
     "lucide-react": "^0.379.0",
-    "next": "14.2.4",
+    "next": "^14.2.35",
     "next-themes": "^0.3.0",
     "pdf-parse": "1.1.1",
     "puppeteer": "^25.1.0",

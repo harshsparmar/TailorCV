@@ -3,7 +3,6 @@ import Groq from "groq-sdk";
 import type { ResumeData } from "@/types/resume";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
 
 const PARSE_SYSTEM_PROMPT = `You are an expert resume parser. Extract all information from the provided resume text and output it as a structured JSON object. Be thorough, accurate, and capture everything.
 

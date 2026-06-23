@@ -3,7 +3,6 @@ import { generateDOCX } from "@/lib/docx-generator";
 import type { ResumeData } from "@/types/resume";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
   try {

@@ -4,7 +4,6 @@ import { buildResumeHtml } from "@/lib/resume-html-template";
 import type { ResumeData } from "@/types/resume";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,7 +22,12 @@ export async function POST(req: NextRequest) {
 
     const browser = await puppeteer.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage", // prevents crashes in containers with small /dev/shm
+        "--disable-gpu",
+      ],
     });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "load" });
