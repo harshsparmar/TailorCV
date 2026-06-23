@@ -87,13 +87,14 @@ export async function POST(req: NextRequest) {
 
       const groq = new Groq({ apiKey });
 
-      const completion = await groq.chat.completions.create({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: PARSE_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: `Parse every detail from this resume into the JSON structure below.
+      const MODELS = [
+        process.env.GROQ_MODEL || "llama-3.3-70b-versatile",
+        "qwen/qwen3-32b",
+        "meta-llama/llama-4-scout-17b-16e-instruct",
+        "openai/gpt-oss-20b",
+      ].filter((m, i, arr) => arr.indexOf(m) === i);
+
+      const userPrompt = `Parse every detail from this resume into the JSON structure below.
 
 RESUME TEXT:
 ${extractedText.slice(0, 8000)}
@@ -132,26 +133,43 @@ Rules:
 - Leave optional string fields as empty string "" if not found; arrays as [] if empty
 - Create one entry per work role, education entry, project, and achievement/certification
 - CERTIFICATIONS: capture ALL entries from sections named "Certifications", "Academic and Extracurricular Achievements", "Achievements", "Awards", "Activities", or similar. For bullet-format entries like "• Name: Description   Date", put the word(s) before the colon as "name", the text after the colon as "description", and the date as "date". Never leave certifications as [] if such a section exists in the resume.
-- Return ONLY the JSON object`,
-          },
-        ],
-        temperature: 0.1,
-        max_tokens: 6000,
-        response_format: { type: "json_object" },
-      });
+- Return ONLY the JSON object`;
 
-      const text = completion.choices[0]?.message?.content;
-      if (!text) {
-        return NextResponse.json(
-          { error: "AI failed to parse resume. Please try again." },
-          { status: 500 }
-        );
+      let responseText: string | null = null;
+      let lastError: unknown;
+
+      for (const model of MODELS) {
+        try {
+          const completion = await groq.chat.completions.create({
+            model,
+            messages: [
+              { role: "system", content: PARSE_SYSTEM_PROMPT },
+              { role: "user", content: userPrompt },
+            ],
+            temperature: 0.1,
+            max_tokens: 6000,
+            response_format: { type: "json_object" },
+          });
+          responseText = completion.choices[0]?.message?.content ?? null;
+          if (responseText) break;
+        } catch (err: unknown) {
+          lastError = err;
+          const e = err as { status?: number; error?: { code?: string } };
+          const skip = e?.status === 429 || e?.status === 413 || e?.error?.code === "model_decommissioned";
+          if (skip) continue;
+          throw err;
+        }
+      }
+
+      if (!responseText) {
+        const msg = lastError instanceof Error ? lastError.message : "All models failed or returned empty responses.";
+        return NextResponse.json({ error: msg }, { status: 429 });
       }
 
       try {
-        const start = text.indexOf("{");
-        const end = text.lastIndexOf("}");
-        const jsonStr = start !== -1 && end !== -1 ? text.slice(start, end + 1) : text;
+        const start = responseText.indexOf("{");
+        const end = responseText.lastIndexOf("}");
+        const jsonStr = start !== -1 && end !== -1 ? responseText.slice(start, end + 1) : responseText;
         resumeData = JSON.parse(jsonStr) as ResumeData;
       } catch {
         return NextResponse.json(
