@@ -1,10 +1,10 @@
 const { join } = require('path');
 
 /**
- * Puts the Chrome cache inside the project directory so Render copies it
- * from the build container to the runtime container.
- * The default ~/.cache/puppeteer path lives outside the project and is lost.
+ * Store Chrome inside node_modules so Render copies it from the build
+ * container to the runtime container. Directories outside node_modules /
+ * .next (e.g. .cache/) are NOT carried over between Render build & runtime.
  */
 module.exports = {
-  cacheDirectory: join(__dirname, '.cache', 'puppeteer'),
+  cacheDirectory: join(__dirname, 'node_modules', '.cache', 'puppeteer'),
 };
