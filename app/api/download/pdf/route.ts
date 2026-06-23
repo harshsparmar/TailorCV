@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("[/api/download/pdf] Error:", error);
     return NextResponse.json(
-      { error: "Failed to generate PDF. Please try again." },
+      { error: `Failed to generate PDF: ${error instanceof Error ? error.message : String(error)}` },
       { status: 500 }
     );
   }
