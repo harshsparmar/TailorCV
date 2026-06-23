@@ -30,7 +30,7 @@ function sectionTitle(title: string): string {
 
 function bulletItem(text: string): string {
   if (!text.trim()) return "";
-  return `<li class="flex gap-2 text-[11px] text-gray-700 leading-relaxed">
+  return `<li class="flex gap-2 text-[11px] text-gray-700 leading-relaxed break-inside-avoid">
             <span class="text-blue-700 mt-0.5 flex-shrink-0 font-bold">•</span>
             <span>${e(text)}</span>
           </li>`;
