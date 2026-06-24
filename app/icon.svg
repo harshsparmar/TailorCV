@@ -1,13 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
   <rect width="32" height="32" rx="8" fill="#7c3aed"/>
-  <text
-    x="16"
-    y="23"
-    font-family="Georgia, 'Times New Roman', serif"
-    font-size="21"
-    font-weight="700"
-    font-style="italic"
-    fill="white"
-    text-anchor="middle"
-  >R</text>
+  <!-- Document -->
+  <path d="M8 5h10l6 6v15a1 1 0 01-1 1H8a1 1 0 01-1-1V6a1 1 0 011-1z" fill="white"/>
+  <!-- Fold -->
+  <path d="M18 5l6 6h-5a1 1 0 01-1-1V5z" fill="#c4b5fd"/>
+  <!-- Sparkle -->
+  <path d="M25.5 2L26 3.5L27.5 4L26 4.5L25.5 6L25 4.5L23.5 4L25 3.5Z" fill="#fbbf24"/>
 </svg>
