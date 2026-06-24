@@ -75,22 +75,30 @@ export default function HomePage() {
       });
   }, [user]);
 
-  // Auto-load default resume on login
+  // Auto-load default resume on login — listen to auth events directly so the
+  // session token is guaranteed to be active when the profile query runs.
   useEffect(() => {
-    if (!user) return;
-    supabase.from("profiles").select("default_resume, default_resume_filename")
-      .eq("id", user.id).single()
-      .then(({ data }) => {
-        if (data?.default_resume && !uploadedResumeRef.current) {
-          const resume   = data.default_resume as ResumeData;
-          const fileName = (data.default_resume_filename as string) ?? "Default Resume";
-          setUploadedResume(resume);
-          setUploadedFileName(fileName);
-          setIsDefaultResume(true);
-          try { localStorage.setItem(RESUME_KEY, JSON.stringify({ resume, fileName, isDefault: true })); } catch { /* ignore */ }
-        }
-      });
-  }, [user]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
+        if (uploadedResumeRef.current) return;
+        supabase.from("profiles")
+          .select("default_resume, default_resume_filename")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data }) => {
+            if (data?.default_resume && !uploadedResumeRef.current) {
+              const resume   = data.default_resume as ResumeData;
+              const fileName = (data.default_resume_filename as string) ?? "Default Resume";
+              setUploadedResume(resume);
+              setUploadedFileName(fileName);
+              setIsDefaultResume(true);
+              try { localStorage.setItem(RESUME_KEY, JSON.stringify({ resume, fileName, isDefault: true })); } catch { /* ignore */ }
+            }
+          });
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [supabase]);
 
   async function handleSetDefault() {
     if (!user || !uploadedResume) return;
