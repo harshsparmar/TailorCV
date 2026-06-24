@@ -45,6 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signUp(email: string, password: string) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error: error.message };
+    if (data.user?.identities?.length === 0) {
+      return { error: "An account with this email already exists. Please sign in instead." };
+    }
     return { error: null, needsVerification: !data.session };
   }
 
